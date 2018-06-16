@@ -64,7 +64,7 @@ public class WebServers {
 		public String host = "0.0.0.0";
 		public int port = 80;
 		public int nconnectors = 1;
-		public int acceptQueueSize = 500;
+		public int acceptQueueSize = 1000;
 		public int nminThreads = 100;
 		public int nmaxThreads = nminThreads * 2;
 		public int maxIdleTime = 60000;
