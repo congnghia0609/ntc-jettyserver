@@ -24,10 +24,18 @@ import com.ntc.jetty.server.ServerCommon.ServerRunner;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
+import org.eclipse.jetty.http2.HTTP2Cipher;
+import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,12 +45,12 @@ import org.slf4j.LoggerFactory;
  * @author nghiatc
  * @since Aug 31, 2015
  */
-public class WebServers {
+public class WebServers2 {
 	////
 	protected String info = null;
 	protected QueuedThreadPool threadPool = null;
 
-	private static final Logger logger = LoggerFactory.getLogger(WebServers.class);
+	private static final Logger logger = LoggerFactory.getLogger(WebServers2.class);
 	protected String name = "ntc";
 	protected Server server;
 	protected Config config = new Config();
@@ -62,7 +70,7 @@ public class WebServers {
 		} // default
 	}
 
-	public WebServers(String name) {
+	public WebServers2(String name) {
 		if (name == null || name.isEmpty()) {
 			this.name = "ntc";
 		} else {
@@ -77,9 +85,13 @@ public class WebServers {
         config.maxIdleTime = NConfig.getConfig().getInt(name + ".maxIdleTime", config.maxIdleTime);
         config.connMaxIdleTime = NConfig.getConfig().getInt(name + ".connMaxIdleTime", config.maxIdleTime);
         config.threadMaxIdleTime = NConfig.getConfig().getInt(name + ".threadMaxIdleTime", config.maxIdleTime);
+        config.keyfile = NConfig.getConfig().getString(name + ".keyfile", config.keyfile);
+        config.password = NConfig.getConfig().getString(name + ".password", config.password);
+        System.out.println("config.keyfile = " + config.keyfile);
+        //System.out.println("config.password = " + config.password);
 	}
     
-    public WebServers(Config cfg) {
+    public WebServers2(Config cfg) {
         config = cfg;
 	}
 
@@ -113,6 +125,8 @@ public class WebServers {
 		return info;
 	}
 
+    // https://github.com/tipsy/javalin-http2-example
+    // keytool -genkey -alias mydomain -keyalg RSA -keystore jetty.jks -keysize 2048
 	public boolean setup(Handler handlers) {
 		if (server != null) {
 			logger.warn("Server was already setup, dont need to setup again");
@@ -135,15 +149,42 @@ public class WebServers {
             server.setDumpBeforeStop(false);
             server.setAttribute("threadPool", threadPool);
 
-			//===== setup connector =====
-            ServerConnector conn = new ServerConnector(server); // Default is non-blocking connection.
-            conn.setHost(config.host);
-            conn.setPort(config.port);
-            conn.setIdleTimeout(config.connMaxIdleTime);
-            conn.setAcceptQueueSize(config.acceptQueueSize);
-            conn.setName(this.name);
-
-			server.addConnector(conn);
+            // HTTP Configuration
+            HttpConfiguration httpConfig = new HttpConfiguration();
+            httpConfig.setSendServerVersion(false);
+            httpConfig.setSecureScheme("https");
+            httpConfig.setSecurePort(config.port);
+            
+            // SSL Context Factory for HTTPS and HTTP/2
+            SslContextFactory sslContextFactory = new SslContextFactory();
+            //sslContextFactory.setKeyManagerPassword(config.password); // replace with your real password
+            sslContextFactory.setKeyStorePath(config.keyfile); // replace with your real keystore
+            sslContextFactory.setKeyStorePassword(config.password); // replace with your real password
+            sslContextFactory.setCipherComparator(HTTP2Cipher.COMPARATOR);
+            sslContextFactory.setProvider("Conscrypt");
+            
+            // HTTPS Configuration
+            HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+            httpsConfig.addCustomizer(new SecureRequestCustomizer());
+            
+            // HTTP/2 Connection Factory
+            HTTP2ServerConnectionFactory h2 = new HTTP2ServerConnectionFactory(httpsConfig);
+            ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
+            alpn.setDefaultProtocol("h2");
+            
+            // SSL Connection Factory
+            SslConnectionFactory ssl = new SslConnectionFactory(sslContextFactory, alpn.getProtocol());
+            
+            //===== HTTP/2 Connector =====
+            // Default is non-blocking connection.
+            ServerConnector http2Connector = new ServerConnector(server, ssl, alpn, h2, new HttpConnectionFactory(httpsConfig));
+            http2Connector.setHost(config.host);
+            http2Connector.setPort(config.port);
+            http2Connector.setIdleTimeout(config.connMaxIdleTime);
+            http2Connector.setAcceptQueueSize(config.acceptQueueSize);
+            http2Connector.setName(this.name);
+            
+            server.addConnector(http2Connector);
 
 			//===== setup server =====
 			server.setStopAtShutdown(true);
@@ -159,9 +200,9 @@ public class WebServers {
 					+ "{idleTimeout=" + formatNum(threadPool.getIdleTimeout())
                     + ", nminThreads=" + formatNum(threadPool.getMinThreads())
 					+ ", nmaxThreads=" + formatNum(threadPool.getMaxThreads())
-					+ "}, " + conn.getClass().getName()
+					+ "}, " + http2Connector.getClass().getName()
 					+ "{acceptQueueSize=" + formatNum(config.acceptQueueSize)
-					+ ", connIdleTimeout=" + formatNum(conn.getIdleTimeout())
+					+ ", connIdleTimeout=" + formatNum(http2Connector.getIdleTimeout())
 					+ "}";
 			return true;
 		} catch (Exception ex) {
