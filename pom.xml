@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.ntc</groupId>
+    <groupId>com.streetcodevn</groupId>
     <artifactId>ntc-jettyserver</artifactId>
     <version>1.0.2</version>
     <packaging>jar</packaging>
     <name>ntc-jettyserver</name>
+    <description>ntc-jettyserver is java web server by Jetty</description>
+    <url>https://github.com/congnghia0609/ntc-jettyserver</url>
+    
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -16,9 +19,40 @@
         <jetty.alpn.api.version>1.1.3.v20160715</jetty.alpn.api.version>
         <jetty.alpn.boot.version>8.1.13.v20181017</jetty.alpn.boot.version>
     </properties>
+    
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>nghiatc</name>
+            <email>congnghia0609@gmail.com</email>
+            <organization>StreetCodeVN</organization>
+            <organizationUrl>https://streetcodevn.com/</organizationUrl>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:git@github.com:congnghia0609/ntc-jettyserver.git</connection>
+        <developerConnection>scm:git:ssh://github.com:congnghia0609/ntc-jettyserver.gi</developerConnection>
+        <url>https://github.com/congnghia0609/ntc-jettyserver/tree/master</url>
+    </scm>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+    
     <dependencies>
         <dependency>
-            <groupId>com.ntc</groupId>
+            <groupId>com.streetcodevn</groupId>
             <artifactId>ntc-configuration</artifactId>
             <version>1.0.0</version>
         </dependency>
@@ -121,9 +155,8 @@
             <artifactId>javax.servlet-api</artifactId>
             <version>4.0.1</version>
         </dependency>
-
-        
 	</dependencies>
+    
     <build>
 		<finalName>${project.artifactId}-${project.version}</finalName>
 		<plugins>
@@ -200,6 +233,71 @@
 					</archive>
 				</configuration>
 			</plugin>
+            
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.8</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <goals>deploy</goals>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
     
