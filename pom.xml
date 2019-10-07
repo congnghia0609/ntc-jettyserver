@@ -36,7 +36,7 @@
     </developers>
     <scm>
         <connection>scm:git:git@github.com:congnghia0609/ntc-jettyserver.git</connection>
-        <developerConnection>scm:git:ssh://github.com:congnghia0609/ntc-jettyserver.gi</developerConnection>
+        <developerConnection>scm:git:ssh://github.com:congnghia0609/ntc-jettyserver.git</developerConnection>
         <url>https://github.com/congnghia0609/ntc-jettyserver/tree/master</url>
     </scm>
     <distributionManagement>
