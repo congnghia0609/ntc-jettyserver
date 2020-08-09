@@ -1,12 +1,12 @@
 # ntc-jettyserver
-ntc-jettyserver is java web server by Jetty
+ntc-jettyserver is a java web server by Jetty
 
 ## Maven
 ```Xml
 <dependency>
     <groupId>com.streetcodevn</groupId>
     <artifactId>ntc-jettyserver</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 </dependency>
 ```
 
