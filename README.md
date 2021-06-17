@@ -6,7 +6,7 @@ ntc-jettyserver is a java web server by Jetty
 <dependency>
     <groupId>com.streetcodevn</groupId>
     <artifactId>ntc-jettyserver</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 </dependency>
 ```
 
