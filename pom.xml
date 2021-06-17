@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.streetcodevn</groupId>
     <artifactId>ntc-jettyserver</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <packaging>jar</packaging>
     <name>ntc-jettyserver</name>
     <description>ntc-jettyserver is java web server by Jetty</description>
